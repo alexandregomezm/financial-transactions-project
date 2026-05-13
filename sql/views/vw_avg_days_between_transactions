@@ -1,0 +1,25 @@
+-- View: public.vw_avg_days_between_transactions
+
+-- DROP VIEW public.vw_avg_days_between_transactions;
+
+CREATE OR REPLACE VIEW public.vw_avg_days_between_transactions
+ AS
+ WITH transactiondate_diff_per_client AS (
+         SELECT da.customerid,
+            ft.transactiondate,
+            ft.transactiondate - lag(ft.transactiondate) OVER (PARTITION BY da.customerid ORDER BY ft.transactiondate) AS diff_transdate
+           FROM facttransaction ft
+             LEFT JOIN dimaccount da ON ft.accountid = da.accountid
+          ORDER BY da.customerid, ft.transactiondate
+        ), avg_transactiondate_diff_per_client AS (
+         SELECT transactiondate_diff_per_client.customerid,
+            round(avg(transactiondate_diff_per_client.diff_transdate), 2) AS avg_transactiondate_diff
+           FROM transactiondate_diff_per_client
+          GROUP BY transactiondate_diff_per_client.customerid
+        )
+ SELECT round(avg(avg_transactiondate_diff), 2) AS avg_days_between_transactions
+   FROM avg_transactiondate_diff_per_client;
+
+ALTER TABLE public.vw_avg_days_between_transactions
+    OWNER TO postgres;
+
