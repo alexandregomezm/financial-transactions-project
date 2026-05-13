@@ -1,0 +1,20 @@
+-- View: public.vw_churn_intervention_priority
+
+-- DROP VIEW public.vw_churn_intervention_priority;
+
+CREATE OR REPLACE VIEW public.vw_churn_intervention_priority
+ AS
+ SELECT dc.customerid,
+    dc.fullname,
+    dc.email AS contact_way,
+    dc.status,
+    vcc.time_since_last_transaction,
+    vcc.churn_status
+   FROM dimcustomer dc
+     LEFT JOIN vw_churn_criteria vcc ON dc.customerid = vcc.customerid
+  WHERE (vcc.churn_status = 'EM RISCO'::text OR vcc.churn_status = 'INATIVO'::text) AND dc.status::text = 'Suspended'::text
+  ORDER BY vcc.churn_status;
+
+ALTER TABLE public.vw_churn_intervention_priority
+    OWNER TO postgres;
+
