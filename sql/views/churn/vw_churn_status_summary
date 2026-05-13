@@ -1,0 +1,14 @@
+-- View: public.vw_churn_status_summary
+
+-- DROP VIEW public.vw_churn_status_summary;
+
+CREATE OR REPLACE VIEW public.vw_churn_status_summary
+ AS
+ SELECT churn_status,
+    count(churn_status) AS count_status
+   FROM vw_churn_criteria
+  GROUP BY churn_status;
+
+ALTER TABLE public.vw_churn_status_summary
+    OWNER TO postgres;
+
