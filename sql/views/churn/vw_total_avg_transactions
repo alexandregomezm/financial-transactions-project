@@ -1,0 +1,19 @@
+-- View: public.vw_total_avg_transactions
+
+-- DROP VIEW public.vw_total_avg_transactions;
+
+CREATE OR REPLACE VIEW public.vw_total_avg_transactions
+ AS
+ WITH transactions_per_client AS (
+         SELECT da.customerid,
+            count(ft.transactionid) AS transaction_count
+           FROM facttransaction ft
+             LEFT JOIN dimaccount da ON ft.accountid = da.accountid
+          GROUP BY da.customerid
+        )
+ SELECT avg(transaction_count) AS total_avg_transactions
+   FROM transactions_per_client;
+
+ALTER TABLE public.vw_total_avg_transactions
+    OWNER TO postgres;
+
