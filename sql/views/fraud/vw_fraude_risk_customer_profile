@@ -1,0 +1,24 @@
+-- View: public.vw_fraude_risk_customer_profile
+
+-- DROP VIEW public.vw_fraude_risk_customer_profile;
+
+CREATE OR REPLACE VIEW public.vw_fraude_risk_customer_profile
+ AS
+ SELECT vtza.customerid,
+    dc.fullname,
+    dc.gender,
+    dc.status,
+    vtza.transactionid,
+    vtza.accountid,
+    vtza.transactionamount,
+    vtza.abs_z_score,
+    vtza.fraude_risk,
+    count(*) OVER (PARTITION BY dc.customerid) AS reincidencia
+   FROM vw_transaction_zscore_analysis vtza
+     JOIN dimcustomer dc ON vtza.customerid = dc.customerid
+  WHERE vtza.abs_z_score >= 2::numeric
+  ORDER BY vtza.abs_z_score DESC;
+
+ALTER TABLE public.vw_fraude_risk_customer_profile
+    OWNER TO postgres;
+
