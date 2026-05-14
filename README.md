@@ -69,6 +69,8 @@ Star schema with 1 fact table and 5 dimension tables:
 ## 🔍 Key Findings
 
 ### 1. Customer Churn
+
+**Key Findings**
 - **Churn Rate:** 6% of the customer base has already churned
 - **32%** of the base is at some level of risk — At Risk, Inactive or Churned
 - **50%** of churned customers had a **Suspended** account status
@@ -86,7 +88,38 @@ they migrate to Inactive or Churned
 to quantify the financial impact of churn on the business
 
 ### 2. Fraud Detection
-> 🔄 In progress
+
+**Methodology: Z-Score Analysis**
+To detect potentially fraudulent transactions, a **Z-Score** (standard score) approach
+was applied at the individual customer level. Rather than comparing transactions against
+a global average, each transaction was evaluated against the customer's own historical
+mean and standard deviation — making the model sensitive to each customer's personal
+behavior pattern.
+
+Transactions were classified into 4 risk levels based on their absolute Z-Score:
+
+| Risk Level | Z-Score Range | Description |
+|------------|--------------|-------------|
+| Normal | < 1 | Within expected behavior |
+| Unusual | 1 — 2 | Slightly outside the pattern |
+| Anomalous | 2 — 3 | Significant deviation — requires investigation |
+| High Risk | > 3 | Severe deviation — immediate action required |
+
+**Key Findings**
+- **2 transactions** classified as **High Risk** — both with the exact same amount of $10,000,
+belonging to different customers, which is highly suspicious
+- **56 transactions** classified as **Anomalous** — deviating more than 2 standard deviations
+from each customer's historical average
+- **Aaron Taylor Jr.**, **David Fischer** and **Rachel Dawson** are the most critical cases —
+all with **4 anomalous transactions** each
+- **Suspended accounts concentrate the highest reincidence** — 50% of customers
+with 3 or more anomalous transactions have a Suspended account status
+- The majority of anomalous transactions carry **large negative values** near -$5,000,
+suggesting a systematic pattern of abnormal outflows
+
+**Recommendations & Next Steps:**
+- Proactively block and immediately investigate the 2 **High Risk** transactions of $10,000 
+- Prioritize investigation of **Aaron Taylor Jr.**, **David Fischer** and **Rachel Dawson**
 
 ### 3. Cross-sell Opportunities
 > 🔄 In progress
