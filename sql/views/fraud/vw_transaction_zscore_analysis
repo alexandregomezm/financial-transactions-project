@@ -1,0 +1,45 @@
+-- View: public.vw_transaction_zscore_analysis
+
+-- DROP VIEW public.vw_transaction_zscore_analysis;
+
+CREATE OR REPLACE VIEW public.vw_transaction_zscore_analysis
+ AS
+ WITH customer_stats AS (
+         SELECT da.customerid,
+            round(avg(ft.transactionamount), 2) AS avg_amount,
+            round(stddev(ft.transactionamount), 2) AS std_dev
+           FROM facttransaction ft
+             JOIN dimaccount da ON ft.accountid = da.accountid
+          GROUP BY da.customerid
+        ), z_score AS (
+         SELECT da.customerid,
+            ft.transactionid,
+            ft.accountid,
+            ft.transactionamount,
+            cs.avg_amount,
+            cs.std_dev,
+            round(abs((ft.transactionamount - cs.avg_amount) / NULLIF(cs.std_dev, 0::numeric)), 2) AS abs_z_score
+           FROM facttransaction ft
+             JOIN dimaccount da ON ft.accountid = da.accountid
+             JOIN customer_stats cs ON da.customerid = cs.customerid
+        )
+ SELECT customerid,
+    transactionid,
+    accountid,
+    transactionamount,
+    avg_amount,
+    std_dev,
+    abs_z_score,
+        CASE
+            WHEN abs_z_score = 0::numeric THEN 'EXACT AVERAGE'::text
+            WHEN abs_z_score < 1::numeric THEN 'NORMAL'::text
+            WHEN abs_z_score < 2::numeric THEN 'UNUSUAL'::text
+            WHEN abs_z_score < 3::numeric THEN 'ANOMALOUS'::text
+            ELSE 'HIGH RISK'::text
+        END AS fraude_risk
+   FROM z_score
+  ORDER BY abs_z_score DESC;
+
+ALTER TABLE public.vw_transaction_zscore_analysis
+    OWNER TO postgres;
+
